@@ -1,0 +1,56 @@
+#!/usr/bin/make -f
+
+fastqt              = $(CURDIR)/fastqt
+fastqt_desktop      = $(CURDIR)/fastqt.desktop
+fastqt_icon         = $(CURDIR)/fastqt.svg
+
+FASTQT_DEST         = $(CURDIR)/debian/fastqt/usr/bin
+FASTQT_DESKTOP_DEST = $(CURDIR)/debian/fastqt/usr/share/applications
+FASTQT_ICON_DEST    = $(CURDIR)/debian/fastqt/usr/share/icons/hicolor/scalable/apps
+
+$(fastqt):
+	qmake FastQt.pro -o Makefile
+	make -f Makefile
+
+build-arch: build
+
+build-indep: build
+
+build: build-stamp
+
+build-stamp:
+	dh_testdir
+	touch build-stamp
+
+install: build $(fastqt)
+	dh_testdir
+	dh_testroot
+	dh_prep
+	dh_installdirs
+
+	mkdir -m 755 -p $(FASTQT_DEST)
+	install -m 755 $(fastqt) $(FASTQT_DEST)
+	mkdir -m 755 -p $(FASTQT_DESKTOP_DEST)
+	install -m 644 $(fastqt_desktop) $(FASTQT_DESKTOP_DEST)
+	mkdir -m 755 -p $(FASTQT_ICON_DEST)
+	install -m 644 $(fastqt_icon) $(FASTQT_ICON_DEST)
+
+binary-indep: build install
+
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs
+	dh_installdocs
+	dh_installexamples
+	dh_installman
+	dh_link
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install
